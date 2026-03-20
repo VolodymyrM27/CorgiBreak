@@ -98,6 +98,13 @@ jobs:
 
             app "CorgiBreak.app"
 
+            caveats <<~EOS
+              CorgiBreak is not notarized. To install, use:
+                brew install --no-quarantine #{token}
+              If you already installed without --no-quarantine, run:
+                xattr -d com.apple.quarantine "#{appdir}/CorgiBreak.app"
+            EOS
+
             zap trash: [
               "~/Library/Preferences/com.corgibreak.app.plist",
             ]

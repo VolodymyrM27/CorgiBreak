@@ -25,12 +25,20 @@ A macOS menu bar app that helps protect your eyes using the **20-20-20 rule** â€
 ### Homebrew (recommended)
 
 ```bash
-brew install --cask VolodymyrM27/corgibreak/corgibreak
+brew install --no-quarantine --cask VolodymyrM27/corgibreak/corgibreak
 ```
+
+> **Note:** The `--no-quarantine` flag is required because the app is not notarized with Apple. This is standard for open-source macOS apps distributed outside the App Store.
 
 ### Manual Download
 
 Download `CorgiBreak.zip` from the [Releases](https://github.com/VolodymyrM27/CorgiBreak/releases) page, unzip, and drag **CorgiBreak.app** to your Applications folder.
+
+If macOS shows "app cannot be opened", run:
+
+```bash
+xattr -d com.apple.quarantine /Applications/CorgiBreak.app
+```
 
 ### Build from Source
 
