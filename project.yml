@@ -18,8 +18,10 @@ targets:
     platform: macOS
     sources:
       - Sources
-    resources:
-      - Resources
+      - path: Resources/Assets.xcassets
+        buildPhase: resources
+      - path: Resources/corgi-asset.png
+        buildPhase: resources
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: com.corgibreak.app
