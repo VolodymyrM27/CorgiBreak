@@ -58,8 +58,9 @@ jobs:
             -derivedDataPath build \
             build
 
-      - name: Package app
+      - name: Sign and package app
         run: |
+          codesign --force --deep --sign - build/Build/Products/Release/CorgiBreak.app
           cd build/Build/Products/Release
           zip -r CorgiBreak.zip CorgiBreak.app
 
