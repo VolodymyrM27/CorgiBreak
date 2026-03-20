@@ -1,9 +1,17 @@
 # CorgiBreak
 
-A macOS menu bar app that helps protect your eyes using the **20-20-20 rule** — every 20 minutes, look at something 20 feet away for 20 seconds. With an adorable animated pixel corgi to keep you company during breaks.
+<p align="center">
+  <img src="Resources/Assets.xcassets/AppIcon.appiconset/icon_256x256.png" alt="CorgiBreak Icon" width="128">
+</p>
 
-<!-- TODO: Add a screenshot or GIF demo here -->
-![img.png](img.png)<!-- ![CorgiBreak Screenshot](screenshot.png) -->
+<p align="center">
+  A macOS menu bar app that helps protect your eyes using the <b>20-20-20 rule</b> — every 20 minutes, look at something 20 feet away for 20 seconds.<br>
+  With an adorable animated pixel corgi to keep you company during breaks.
+</p>
+
+<p align="center">
+  <img src="preview.gif" alt="CorgiBreak Preview" width="600">
+</p>
 
 ## Features
 
@@ -11,6 +19,7 @@ A macOS menu bar app that helps protect your eyes using the **20-20-20 rule** �
 - **Fullscreen Overlay** — A blurred overlay with a countdown timer appears across all screens
 - **Animated Pixel Corgi** — 8 unique corgi animations (idle, walk, run, sit, jump, sniff, and more) randomly chosen each break
 - **Menu Bar Only** — Lives in the menu bar, stays out of your way
+- **Launch at Login** — Optional toggle to start with macOS
 - **Pause / Resume** — Pause the timer when you don't need it
 - **Skip Breaks** — Press `Esc` or click Skip to dismiss a break early
 - **Multi-Monitor** — Overlay appears on all connected displays
@@ -38,9 +47,9 @@ xattr -d com.apple.quarantine /Applications/CorgiBreak.app
 
 ### Manual Download
 
-Download `CorgiBreak.zip` from the [Releases](https://github.com/VolodymyrM27/CorgiBreak/releases) page, unzip, and drag **CorgiBreak.app** to your Applications folder.
-
-If macOS shows "app cannot be opened", run:
+1. Download `CorgiBreak.zip` from the [Releases](https://github.com/VolodymyrM27/CorgiBreak/releases) page
+2. Unzip and drag **CorgiBreak.app** to your Applications folder
+3. If macOS shows "app cannot be opened", run:
 
 ```bash
 xattr -d com.apple.quarantine /Applications/CorgiBreak.app
@@ -51,25 +60,16 @@ xattr -d com.apple.quarantine /Applications/CorgiBreak.app
 Requires Xcode 15.0+ and [XcodeGen](https://github.com/yonaskolb/XcodeGen).
 
 ```bash
-# Clone the repository
 git clone https://github.com/VolodymyrM27/CorgiBreak.git
 cd CorgiBreak
-
-# Install XcodeGen (if not already installed)
 brew install xcodegen
-
-# Generate the Xcode project
 xcodegen generate
-
-# Build
 xcodebuild \
   -project CorgiBreak.xcodeproj \
   -scheme CorgiBreak \
   -configuration Release \
   -derivedDataPath build \
   build
-
-# Run
 open build/Build/Products/Release/CorgiBreak.app
 ```
 
@@ -83,11 +83,11 @@ open build/Build/Products/Release/CorgiBreak.app
 
 ### Menu Bar Options
 
-| Action | Shortcut |
-|---|---|
-| Pause / Resume | `P` |
-| Take a Break Now | `B` |
-| Quit | `Q` |
+| Action           | Shortcut |
+| ---------------- | -------- |
+| Pause / Resume   | `P`      |
+| Take a Break Now | `B`      |
+| Quit             | `Q`      |
 
 ## Project Structure
 
