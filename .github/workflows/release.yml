@@ -15,6 +15,33 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Determine version
+        id: version
+        run: |
+          if [[ "$GITHUB_REF" == refs/tags/v* ]]; then
+            VERSION="${GITHUB_REF_NAME}"
+          else
+            LATEST=$(git tag -l 'v*' --sort=-v:refname | head -n 1)
+            if [ -z "$LATEST" ]; then
+              VERSION="v1.0.0"
+            else
+              # Strip 'v' prefix, split into major.minor.patch, bump patch
+              SEMVER="${LATEST#v}"
+              MAJOR=$(echo "$SEMVER" | cut -d. -f1)
+              MINOR=$(echo "$SEMVER" | cut -d. -f2)
+              PATCH=$(echo "$SEMVER" | cut -d. -f3)
+              PATCH=$((PATCH + 1))
+              VERSION="v${MAJOR}.${MINOR}.${PATCH}"
+            fi
+            # Create and push the new tag
+            git tag "$VERSION"
+            git push origin "$VERSION"
+          fi
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "Version: $VERSION"
 
       - name: Install XcodeGen
         run: brew install xcodegen
@@ -40,7 +67,7 @@ jobs:
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
-          VERSION="${GITHUB_REF_NAME}"
+          VERSION="${{ steps.version.outputs.version }}"
           gh release create "$VERSION" \
             build/Build/Products/Release/CorgiBreak.zip \
             --title "$VERSION" \
@@ -51,7 +78,8 @@ jobs:
           TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
         if: env.TAP_TOKEN != ''
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
+          VERSION="${{ steps.version.outputs.version }}"
+          VERSION_NUM="${VERSION#v}"
           SHA256=$(shasum -a 256 build/Build/Products/Release/CorgiBreak.zip | awk '{print $1}')
 
           git clone https://x-access-token:${TAP_TOKEN}@github.com/VolodymyrM27/homebrew-corgibreak.git tap
@@ -59,7 +87,7 @@ jobs:
 
           cat > tap/Casks/corgibreak.rb << EOF
           cask "corgibreak" do
-            version "$VERSION"
+            version "$VERSION_NUM"
             sha256 "$SHA256"
 
             url "https://github.com/VolodymyrM27/CorgiBreak/releases/download/v#{version}/CorgiBreak.zip"
@@ -79,5 +107,5 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add -A
-          git commit -m "Update corgibreak to $VERSION" || exit 0
+          git commit -m "Update corgibreak to $VERSION_NUM" || exit 0
           git push
