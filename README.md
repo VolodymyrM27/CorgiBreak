@@ -3,7 +3,7 @@
 A macOS menu bar app that helps protect your eyes using the **20-20-20 rule** — every 20 minutes, look at something 20 feet away for 20 seconds. With an adorable animated pixel corgi to keep you company during breaks.
 
 <!-- TODO: Add a screenshot or GIF demo here -->
-<!-- ![CorgiBreak Screenshot](screenshot.png) -->
+![img.png](img.png)<!-- ![CorgiBreak Screenshot](screenshot.png) -->
 
 ## Features
 
@@ -117,6 +117,20 @@ CorgiBreak/
 - **AppKit** for window management and visual effects
 - **XcodeGen** for project file generation
 - No third-party dependencies
+
+## Roadmap
+
+- [ ] Customizable break interval and duration
+- [ ] Preferences UI (settings window)
+- [ ] Do Not Disturb / Focus mode detection — skip breaks during meetings or presentations
+- [ ] Option to disable sound effects
+- [ ] Gentle notification mode as an alternative to fullscreen overlay
+- [ ] Break statistics — track breaks taken today/this week, streaks
+- [ ] Auto-updates via Sparkle
+- [ ] Accessibility improvements — VoiceOver labels, reduce motion support
+- [ ] Localization (English, Ukrainian)
+
+Have a feature idea? [Open an issue](https://github.com/VolodymyrM27/CorgiBreak/issues) — contributions are welcome!
 
 ## License
 
