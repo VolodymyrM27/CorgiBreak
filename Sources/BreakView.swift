@@ -26,6 +26,8 @@ struct BreakView: View {
 
                 PixelCorgi()
                     .frame(width: 192, height: 192)
+                    .scaleEffect(3.0)
+                    .frame(width: 576, height: 576)
                     .padding(.vertical, 8)
 
                 ZStack {
