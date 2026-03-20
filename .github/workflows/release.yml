@@ -1,0 +1,82 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "v*"
+
+permissions:
+  contents: write
+
+jobs:
+  build-and-release:
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Install XcodeGen
+        run: brew install xcodegen
+
+      - name: Generate Xcode project
+        run: xcodegen generate
+
+      - name: Build
+        run: |
+          xcodebuild \
+            -project CorgiBreak.xcodeproj \
+            -scheme CorgiBreak \
+            -configuration Release \
+            -derivedDataPath build \
+            build
+
+      - name: Package app
+        run: |
+          cd build/Build/Products/Release
+          zip -r CorgiBreak.zip CorgiBreak.app
+
+      - name: Create GitHub Release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          VERSION="${GITHUB_REF_NAME}"
+          gh release create "$VERSION" \
+            build/Build/Products/Release/CorgiBreak.zip \
+            --title "$VERSION" \
+            --generate-notes
+
+      - name: Update Homebrew tap
+        env:
+          TAP_TOKEN: ${{ secrets.TAP_TOKEN }}
+        if: env.TAP_TOKEN != ''
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          SHA256=$(shasum -a 256 build/Build/Products/Release/CorgiBreak.zip | awk '{print $1}')
+
+          git clone https://x-access-token:${TAP_TOKEN}@github.com/VolodymyrM27/homebrew-corgibreak.git tap
+          mkdir -p tap/Casks
+
+          cat > tap/Casks/corgibreak.rb << EOF
+          cask "corgibreak" do
+            version "$VERSION"
+            sha256 "$SHA256"
+
+            url "https://github.com/VolodymyrM27/CorgiBreak/releases/download/v#{version}/CorgiBreak.zip"
+            name "CorgiBreak"
+            desc "Menu bar app for the 20-20-20 eye care rule with an animated pixel corgi"
+            homepage "https://github.com/VolodymyrM27/CorgiBreak"
+
+            app "CorgiBreak.app"
+
+            zap trash: [
+              "~/Library/Preferences/com.corgibreak.app.plist",
+            ]
+          end
+          EOF
+
+          cd tap
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -m "Update corgibreak to $VERSION" || exit 0
+          git push
