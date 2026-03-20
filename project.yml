@@ -20,7 +20,7 @@ targets:
       - Sources
       - path: Resources/Assets.xcassets
         buildPhase: resources
-      - path: Resources/corgi-asset.png
+      - path: Resources/CorgiFrames
         buildPhase: resources
     settings:
       base:

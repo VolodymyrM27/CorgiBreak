@@ -39,7 +39,7 @@ After code changes: regenerate the project with `xcodegen generate` if files wer
 
 **Overlay rendering**: `BreakView` (SwiftUI) is hosted inside each `NSWindow` via `NSHostingView`. It layers a `VisualEffectView` (NSVisualEffectView wrapper for blur) + semi-transparent black + the break UI content.
 
-**Pixel corgi**: `PixelCorgi` renders frame-based pixel art using SwiftUI `Canvas`, with two frames (eyes open/closed) defined as string arrays where each character maps to a color. Includes blink animation (every 3s) and continuous bounce.
+**Pixel corgi**: `PixelCorgi` loads pre-extracted PNG frames from the bundle (8 animations: jump, idle1, idle2, sit, walk, run, sniff, sniffwalk). Frames are extracted from `Resources/corgi-asset.png` sprite sheet using `scripts/extract_frames.py` (requires Pillow). A random animation is chosen each break, with continuous bounce.
 
 **Key constraint**: Overlay windows must use `orderOut()` to hide, never `close()`. Using `close()` triggers macOS app termination since MenuBarExtra doesn't count as a window.
 
