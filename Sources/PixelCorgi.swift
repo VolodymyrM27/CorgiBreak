@@ -1,109 +1,70 @@
 import SwiftUI
+import AppKit
 
 struct PixelCorgi: View {
-    @State private var isBlinking = false
+    @State private var currentFrameIndex = 0
     @State private var bounceOffset: CGFloat = 0
-    @State private var tailFrame = 0
+    @State private var animationIndex: Int = Int.random(in: 0..<8)
 
-    private let blinkTimer = Timer.publish(every: 3.0, on: .main, in: .common).autoconnect()
-    private let tailTimer = Timer.publish(every: 0.4, on: .main, in: .common).autoconnect()
+    private let animationTimer = Timer.publish(every: 0.15, on: .main, in: .common).autoconnect()
 
-    // Pixel colors
-    static let palette: [Character: Color] = [
-        ".": .clear,
-        "o": Color(red: 0.91, green: 0.58, blue: 0.29),  // orange body
-        "t": Color(red: 0.96, green: 0.76, blue: 0.49),   // tan / light
-        "w": .white,                                        // white patches
-        "k": Color(red: 0.15, green: 0.15, blue: 0.15),   // black (eyes/nose)
-        "p": Color(red: 1.0, green: 0.5, blue: 0.55),     // pink tongue
-        "b": Color(red: 0.75, green: 0.45, blue: 0.20),   // brown accents
-        "e": Color(red: 0.20, green: 0.20, blue: 0.20),   // ear outline
-    ]
+    // Grid lines detected from the sprite sheet
+    private static let vLines = [96, 159, 223, 287, 351, 415, 479, 543, 607, 671, 735, 799]
+    private static let hLines = [0, 63, 127, 191, 255, 319, 383, 447, 511]
+    private static let frameCounts = [10, 5, 5, 9, 5, 8, 8, 8]
 
-    // Frame: eyes open
-    static let eyesOpen: [String] = [
-        "................",  //  0
-        "..bo........bo..",  //  1 ear tips
-        ".boob......boob.",  //  2 ears
-        ".oooooooooooooo.",  //  3 head top
-        "oottttttttttttoo",  //  4 forehead
-        "ottkkttttttkktto",  //  5 eyes
-        "otttttttttttttto",  //  6 cheeks
-        ".otttttkkttttto.",  //  7 nose
-        "..ottttpptttto..",  //  8 tongue
-        "...oottttttoo...",  //  9 chin
-        "....oooooooo....",  // 10 neck
-        "...oooooooooo...",  // 11 body
-        "..oowoooooowoo..",  // 12 white chest
-        "..owwoooooowwoo.",  // 13 lower body
-        "...ww......ww...",  // 14 legs
-        "...oo......oo...",  // 15 paws
-    ]
+    static let allFrames: [[NSImage]] = {
+        guard let url = Bundle.main.url(forResource: "corgi-asset", withExtension: "png"),
+              let source = NSImage(contentsOf: url),
+              let cgImage = source.cgImage(forProposedRect: nil, context: nil, hints: nil) else {
+            return []
+        }
 
-    // Frame: eyes closed (blink)
-    static let eyesClosed: [String] = [
-        "................",
-        "..bo........bo..",
-        ".boob......boob.",
-        ".oooooooooooooo.",
-        "oottttttttttttoo",
-        "ottbbttttttbbtto",  // closed eyes (brown lines)
-        "otttttttttttttto",
-        ".otttttkkttttto.",
-        "..ottttpptttto..",
-        "...oottttttoo...",
-        "....oooooooo....",
-        "...oooooooooo...",
-        "..oowoooooowoo..",
-        "..owwoooooowwoo.",
-        "...ww......ww...",
-        "...oo......oo...",
-    ]
+        let inset = 2
+        return (0..<8).map { row in
+            let y = hLines[row] + inset
+            let h = hLines[row + 1] - hLines[row] - inset * 2
+            var frames: [NSImage] = []
+            for col in 0..<frameCounts[row] {
+                let x = vLines[col] + inset
+                let w = vLines[col + 1] - vLines[col] - inset * 2
+                let rect = CGRect(x: x, y: y, width: w, height: h)
+                if let cropped = cgImage.cropping(to: rect) {
+                    let frame = NSImage(cgImage: cropped, size: NSSize(width: w, height: h))
+                    frames.append(frame)
+                }
+            }
+            return frames
+        }
+    }()
 
-    var currentFrame: [String] {
-        isBlinking ? Self.eyesClosed : Self.eyesOpen
+    private var currentAnimation: [NSImage] {
+        guard animationIndex < Self.allFrames.count else { return [] }
+        return Self.allFrames[animationIndex]
     }
 
     var body: some View {
-        Canvas { context, size in
-            let frame = currentFrame
-            let rows = frame.count
-            let cols = frame.first?.count ?? 0
-            guard rows > 0, cols > 0 else { return }
-
-            let pixelW = size.width / CGFloat(cols)
-            let pixelH = size.height / CGFloat(rows)
-            let px = min(pixelW, pixelH)
-
-            let totalW = px * CGFloat(cols)
-            let totalH = px * CGFloat(rows)
-            let offsetX = (size.width - totalW) / 2
-            let offsetY = (size.height - totalH) / 2
-
-            for (r, row) in frame.enumerated() {
-                for (c, char) in row.enumerated() {
-                    guard let color = Self.palette[char], char != "." else { continue }
-                    let rect = CGRect(
-                        x: offsetX + CGFloat(c) * px,
-                        y: offsetY + CGFloat(r) * px,
-                        width: px + 0.5, // slight overlap to avoid gaps
-                        height: px + 0.5
-                    )
-                    context.fill(Path(rect), with: .color(color))
-                }
+        Group {
+            let frames = currentAnimation
+            if !frames.isEmpty {
+                Image(nsImage: frames[currentFrameIndex % frames.count])
+                    .interpolation(.none)
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
             }
         }
         .offset(y: bounceOffset)
         .onAppear {
+            animationIndex = Int.random(in: 0..<Self.frameCounts.count)
+            currentFrameIndex = 0
             withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
                 bounceOffset = -8
             }
         }
-        .onReceive(blinkTimer) { _ in
-            isBlinking = true
-            DispatchQueue.main.asyncAfter(deadline: .now() + 0.15) {
-                isBlinking = false
-            }
+        .onReceive(animationTimer) { _ in
+            let frames = currentAnimation
+            guard !frames.isEmpty else { return }
+            currentFrameIndex = (currentFrameIndex + 1) % frames.count
         }
     }
 }
