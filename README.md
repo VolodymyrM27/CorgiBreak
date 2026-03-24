@@ -19,6 +19,8 @@
 - **Fullscreen Overlay** — A blurred overlay with a countdown timer appears across all screens
 - **Animated Pixel Corgi** — 8 unique corgi animations (idle, walk, run, sit, jump, sniff, and more) randomly chosen each break
 - **Menu Bar Only** — Lives in the menu bar, stays out of your way
+- **Settings Panel** — Customize break interval, duration, schedule, and sound from a native settings window
+- **Scheduled Hours** — Optionally limit breaks to a specific time window (e.g. 9 AM – 6 PM)
 - **Launch at Login** — Optional toggle to start with macOS
 - **Pause / Resume** — Pause the timer when you don't need it
 - **Skip Breaks** — Press `Esc` or click Skip to dismiss a break early
@@ -87,6 +89,7 @@ open build/Build/Products/Release/CorgiBreak.app
 | ---------------- | -------- |
 | Pause / Resume   | `P`      |
 | Take a Break Now | `B`      |
+| Settings         | `,`      |
 | Quit             | `Q`      |
 
 ## Project Structure
@@ -100,6 +103,8 @@ CorgiBreak/
 │   ├── OverlayManager.swift     # Fullscreen window management
 │   ├── BreakView.swift          # Break overlay UI
 │   ├── PixelCorgi.swift         # Animated sprite rendering
+│   ├── SettingsManager.swift    # User preferences (UserDefaults)
+│   ├── SettingsView.swift       # Settings window UI
 │   └── VisualEffectView.swift   # NSVisualEffectView wrapper
 ├── Resources/
 │   ├── CorgiFrames/             # Pre-extracted animation frames
@@ -120,10 +125,11 @@ CorgiBreak/
 
 ## Roadmap
 
-- [ ] Customizable break interval and duration
-- [ ] Preferences UI (settings window)
+- [x] Customizable break interval and duration
+- [x] Preferences UI (settings window)
+- [x] Scheduled hours — limit breaks to a time window
+- [x] Option to disable sound effects
 - [ ] Do Not Disturb / Focus mode detection — skip breaks during meetings or presentations
-- [ ] Option to disable sound effects
 - [ ] Gentle notification mode as an alternative to fullscreen overlay
 - [ ] Break statistics — track breaks taken today/this week, streaks
 - [ ] Auto-updates via Sparkle
