@@ -21,9 +21,9 @@ final class OverlayManager {
             window.collectionBehavior = [.canJoinAllSpaces, .fullScreenAuxiliary]
             window.alphaValue = 0
 
-            let breakView = BreakView(timerManager: timerManager)
+            let breakView = BreakView(timerManager: timerManager, topSafeArea: screen.safeAreaInsets.top, bottomSafeArea: screen.safeAreaInsets.bottom)
             let hostingView = NSHostingView(rootView: breakView)
-            hostingView.frame = screen.frame
+            hostingView.frame = NSRect(origin: .zero, size: screen.frame.size)
             window.contentView = hostingView
 
             window.makeKeyAndOrderFront(nil)
