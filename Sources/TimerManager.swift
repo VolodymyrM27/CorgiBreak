@@ -2,13 +2,15 @@ import SwiftUI
 import Combine
 
 final class TimerManager: ObservableObject {
-    @Published var timeRemaining: TimeInterval = 20 * 60
+    @Published var timeRemaining: TimeInterval
     @Published var breakTimeRemaining: TimeInterval = 20
     @Published var isPaused = false
     @Published var isOnBreak = false
 
+    private let settings: SettingsManager
     private var timer: Timer?
     private var overlayManager: OverlayManager?
+    private var cancellables = Set<AnyCancellable>()
 
     var timeRemainingFormatted: String {
         let minutes = Int(timeRemaining) / 60
@@ -26,9 +28,12 @@ final class TimerManager: ObservableObject {
         return timeRemainingFormatted
     }
 
-    init() {
+    init(settings: SettingsManager) {
+        self.settings = settings
+        self.timeRemaining = TimeInterval(settings.breakIntervalSeconds)
         startTimer()
         observeScreenSleep()
+        observeSettings()
     }
 
     private func startTimer() {
@@ -40,6 +45,7 @@ final class TimerManager: ObservableObject {
 
     private func tick() {
         guard !isPaused else { return }
+        if !isOnBreak && !settings.isWithinSchedule() { return }
 
         if isOnBreak {
             breakTimeRemaining -= 1
@@ -57,9 +63,11 @@ final class TimerManager: ObservableObject {
     func triggerBreak() {
         guard !isOnBreak else { return }
         isOnBreak = true
-        breakTimeRemaining = 20
+        breakTimeRemaining = TimeInterval(settings.breakDuration)
 
-        NSSound(named: "Glass")?.play()
+        if settings.soundEnabled {
+            NSSound(named: "Glass")?.play()
+        }
 
         let overlay = OverlayManager()
         self.overlayManager = overlay
@@ -68,11 +76,13 @@ final class TimerManager: ObservableObject {
 
     func endBreak() {
         isOnBreak = false
-        timeRemaining = 20 * 60
+        timeRemaining = TimeInterval(settings.breakIntervalSeconds)
         overlayManager?.hideOverlay()
         overlayManager = nil
 
-        NSSound(named: "Pop")?.play()
+        if settings.soundEnabled {
+            NSSound(named: "Pop")?.play()
+        }
     }
 
     func skipBreak() {
@@ -100,8 +110,20 @@ final class TimerManager: ObservableObject {
             forName: NSWorkspace.screensDidWakeNotification,
             object: nil, queue: .main
         ) { [weak self] _ in
-            self?.isPaused = false
-            self?.timeRemaining = 20 * 60
+            guard let self else { return }
+            self.isPaused = false
+            self.timeRemaining = TimeInterval(self.settings.breakIntervalSeconds)
         }
+    }
+
+    private func observeSettings() {
+        settings.$breakIntervalMinutes
+            .dropFirst()
+            .receive(on: RunLoop.main)
+            .sink { [weak self] (newInterval: Int) in
+                guard let self, !self.isOnBreak else { return }
+                self.timeRemaining = TimeInterval(newInterval * 60)
+            }
+            .store(in: &cancellables)
     }
 }

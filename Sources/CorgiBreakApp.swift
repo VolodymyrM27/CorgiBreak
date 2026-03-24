@@ -13,11 +13,19 @@ class AppDelegate: NSObject, NSApplicationDelegate {
 @main
 struct CorgiBreakApp: App {
     @NSApplicationDelegateAdaptor(AppDelegate.self) var appDelegate
-    @StateObject private var timerManager = TimerManager()
+    @StateObject private var settingsManager: SettingsManager
+    @StateObject private var timerManager: TimerManager
+
+    init() {
+        let settings = SettingsManager()
+        _settingsManager = StateObject(wrappedValue: settings)
+        _timerManager = StateObject(wrappedValue: TimerManager(settings: settings))
+    }
 
     var body: some Scene {
         MenuBarExtra {
             MenuBarView(timerManager: timerManager)
+                .environmentObject(settingsManager)
         } label: {
             HStack(spacing: 4) {
                 Image(systemName: timerManager.isOnBreak ? "eye.slash" : "eye")
@@ -25,5 +33,10 @@ struct CorgiBreakApp: App {
             }
         }
         .menuBarExtraStyle(.menu)
+
+        Settings {
+            SettingsView()
+                .environmentObject(settingsManager)
+        }
     }
 }

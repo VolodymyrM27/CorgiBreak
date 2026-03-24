@@ -1,13 +1,18 @@
 import SwiftUI
-import ServiceManagement
 
 struct MenuBarView: View {
     @ObservedObject var timerManager: TimerManager
-    @State private var launchAtLogin = SMAppService.mainApp.status == .enabled
+    @EnvironmentObject var settingsManager: SettingsManager
+    @Environment(\.openSettings) private var openSettings
 
     var body: some View {
-        Text("Next break in \(timerManager.timeRemainingFormatted)")
-            .font(.headline)
+        if settingsManager.scheduleEnabled && !settingsManager.isWithinSchedule() {
+            Text("Breaks paused (schedule)")
+                .font(.headline)
+        } else {
+            Text("Next break in \(timerManager.timeRemainingFormatted)")
+                .font(.headline)
+        }
 
         Divider()
 
@@ -21,20 +26,11 @@ struct MenuBarView: View {
         }
         .keyboardShortcut("b")
 
-        Divider()
-
-        Toggle("Launch at Login", isOn: $launchAtLogin)
-            .onChange(of: launchAtLogin) { newValue in
-                do {
-                    if newValue {
-                        try SMAppService.mainApp.register()
-                    } else {
-                        try SMAppService.mainApp.unregister()
-                    }
-                } catch {
-                    launchAtLogin = SMAppService.mainApp.status == .enabled
-                }
-            }
+        Button("Settings...") {
+            openSettings()
+            NSApp.activate(ignoringOtherApps: true)
+        }
+        .keyboardShortcut(",")
 
         Divider()
 
