@@ -3,11 +3,9 @@ import ServiceManagement
 
 class SettingsManager: ObservableObject {
     // Break timing
-    @Published var breakIntervalMinutes: Int {
-        didSet { UserDefaults.standard.set(breakIntervalMinutes, forKey: "breakIntervalMinutes") }
+    @Published var breakIntervalSeconds: Int {
+        didSet { UserDefaults.standard.set(breakIntervalSeconds, forKey: "breakIntervalSeconds") }
     }
-
-    var breakIntervalSeconds: Int { breakIntervalMinutes * 60 }
 
     @Published var breakDuration: Int {
         didSet { UserDefaults.standard.set(breakDuration, forKey: "breakDuration") }
@@ -62,7 +60,18 @@ class SettingsManager: ObservableObject {
 
     init() {
         let defaults = UserDefaults.standard
-        self.breakIntervalMinutes = defaults.object(forKey: "breakIntervalMinutes") as? Int ?? 20
+
+        // Migration: convert old breakIntervalMinutes to breakIntervalSeconds
+        let intervalSeconds: Int
+        if let oldMinutes = defaults.object(forKey: "breakIntervalMinutes") as? Int {
+            intervalSeconds = oldMinutes * 60
+            defaults.set(intervalSeconds, forKey: "breakIntervalSeconds")
+            defaults.removeObject(forKey: "breakIntervalMinutes")
+        } else {
+            intervalSeconds = defaults.object(forKey: "breakIntervalSeconds") as? Int ?? 1200
+        }
+        self.breakIntervalSeconds = intervalSeconds
+
         self.breakDuration = defaults.object(forKey: "breakDuration") as? Int ?? 20
         self.scheduleEnabled = defaults.object(forKey: "scheduleEnabled") as? Bool ?? false
         self.scheduleStartHour = defaults.object(forKey: "scheduleStartHour") as? Int ?? 10

@@ -117,12 +117,12 @@ final class TimerManager: ObservableObject {
     }
 
     private func observeSettings() {
-        settings.$breakIntervalMinutes
+        settings.$breakIntervalSeconds
             .dropFirst()
             .receive(on: RunLoop.main)
             .sink { [weak self] (newInterval: Int) in
                 guard let self, !self.isOnBreak else { return }
-                self.timeRemaining = TimeInterval(newInterval * 60)
+                self.timeRemaining = TimeInterval(newInterval)
             }
             .store(in: &cancellables)
     }
